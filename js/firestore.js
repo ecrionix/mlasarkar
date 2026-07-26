@@ -203,11 +203,12 @@ export async function getPendingIssues() {
   try {
     const q = query(
       collection(db, "issues"),
-      where("status", "==", "PENDING"),
-      orderBy("createdAt", "asc")
+      where("status", "==", "PENDING")
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const issues = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Sort by createdAt in client (no index needed)
+    return issues.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   } catch (error) {
     console.error("Error fetching pending issues:", error);
     return [];

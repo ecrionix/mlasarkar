@@ -369,6 +369,7 @@
 
     <script type="module">
         import { getCurrentUser, getUserData, logOut } from "./js/auth.js";
+        import { getUserIssues, getMLAByConstituency, formatDate } from "./js/firestore.js";
 
         // Check if user is logged in
         const user = await getCurrentUser();
@@ -385,124 +386,108 @@
             document.getElementById("constituency").textContent = userData.constituency || "-";
         }
 
-        // Sample issues data
-        const sampleIssues = [
-            {
-                id: 1,
-                title: "Pothole on Main Road",
-                description: "Large pothole causing traffic issues",
-                location: "Main Street, Tiruppur",
-                category: "Roads",
-                status: "APPROVED",
-                submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            },
-            {
-                id: 2,
-                title: "Water shortage in residential area",
-                description: "No water supply for 3 days",
-                location: "Residential Area, Tiruppur",
-                category: "Water",
-                status: "RESOLVED",
-                submittedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+        // Load and display issues
+        async function loadAndRenderIssues() {
+            const userIssues = await getUserIssues(user.uid);
+
+            function renderIssues() {
+                const issuesList = document.getElementById("issuesList");
+                issuesList.innerHTML = "";
+
+                if (userIssues.length === 0) {
+                    issuesList.innerHTML = `
+                        <div class="empty-state">
+                            <p>No issues reported yet</p>
+                            <a href="report-issue.html" class="btn" style="margin-top: 1rem;">Report Your First Issue</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                userIssues.forEach(issue => {
+                    const statusClass = issue.status ? issue.status.toLowerCase() : 'pending';
+                    const issueCard = document.createElement("div");
+                    issueCard.className = `issue-card ${statusClass}`;
+                    issueCard.innerHTML = `
+                        <div class="issue-header">
+                            <div>
+                                <div class="issue-title">${issue.title}</div>
+                                <span class="issue-status status-${statusClass}">${issue.status || 'PENDING'}</span>
+                            </div>
+                        </div>
+                        <div class="issue-meta">
+                            📍 ${issue.location} • 🏷️ ${issue.category}
+                        </div>
+                        <div class="issue-description">${issue.description}</div>
+                        <div class="issue-meta">Submitted ${formatDate(issue.createdAt)}</div>
+                    `;
+                    issuesList.appendChild(issueCard);
+                });
+
+                // Update stats
+                document.getElementById("totalIssues").textContent = userIssues.length;
+                document.getElementById("resolvedIssues").textContent = userIssues.filter(i => i.status === "RESOLVED").length;
+                document.getElementById("pendingIssues").textContent = userIssues.filter(i => i.status === "APPROVED" || i.status === "PENDING").length;
             }
-        ];
 
-        // Display issues
-        function renderIssues() {
-            const issuesList = document.getElementById("issuesList");
-            issuesList.innerHTML = "";
+            renderIssues();
+        }
 
-            if (sampleIssues.length === 0) {
-                issuesList.innerHTML = `
-                    <div class="empty-state">
-                        <p>No issues reported yet</p>
-                        <a href="report-issue.html" class="btn" style="margin-top: 1rem;">Report Your First Issue</a>
-                    </div>
-                `;
+        // Load and display MLA
+        async function loadAndRenderMLA() {
+            if (!userData || !userData.constituency) {
+                document.getElementById("mlaCard").innerHTML = '<div class="empty-state"><p>No constituency selected</p></div>';
                 return;
             }
 
-            sampleIssues.forEach(issue => {
-                const statusClass = issue.status.toLowerCase();
-                const issueCard = document.createElement("div");
-                issueCard.className = `issue-card ${statusClass}`;
-                issueCard.innerHTML = `
-                    <div class="issue-header">
+            const mlaData = await getMLAByConstituency(userData.constituency);
+
+            function renderMLA() {
+                const mlaCard = document.getElementById("mlaCard");
+
+                if (!mlaData) {
+                    mlaCard.innerHTML = '<div class="empty-state"><p>MLA data not available for your constituency yet</p></div>';
+                    return;
+                }
+
+                const resolutionRate = mlaData.issuesReported > 0
+                    ? Math.round((mlaData.issuesResolved / mlaData.issuesReported) * 100)
+                    : 0;
+
+                mlaCard.innerHTML = `
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">
+                            ${mlaData.name.charAt(0)}
+                        </div>
                         <div>
-                            <div class="issue-title">${issue.title}</div>
-                            <span class="issue-status status-${statusClass}">${issue.status}</span>
+                            <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">${mlaData.name}</h3>
+                            <p style="color: #6b7280; margin-bottom: 1rem;">${mlaData.party} Party</p>
+
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                                <div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${mlaData.score || 0}%</div>
+                                    <div style="font-size: 0.85rem; color: #6b7280;">Score</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${mlaData.issuesResolved || 0}</div>
+                                    <div style="font-size: 0.85rem; color: #6b7280;">Issues Resolved</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${resolutionRate}%</div>
+                                    <div style="font-size: 0.85rem; color: #6b7280;">Resolution Rate</div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 1rem;">
+                                <a href="mailto:${mlaData.email || '#'}" class="btn-secondary btn">✉️ Email</a>
+                                <a href="tel:${mlaData.phone || '#'}" class="btn-secondary btn">📞 Call</a>
+                            </div>
                         </div>
                     </div>
-                    <div class="issue-meta">
-                        📍 ${issue.location} • 🏷️ ${issue.category}
-                    </div>
-                    <div class="issue-description">${issue.description}</div>
-                    <div class="issue-meta">Submitted ${formatDate(issue.submittedAt)}</div>
                 `;
-                issuesList.appendChild(issueCard);
-            });
+            }
 
-            // Update stats
-            document.getElementById("totalIssues").textContent = sampleIssues.length;
-            document.getElementById("resolvedIssues").textContent = sampleIssues.filter(i => i.status === "RESOLVED").length;
-            document.getElementById("pendingIssues").textContent = sampleIssues.filter(i => i.status === "APPROVED").length;
-        }
-
-        // Format date
-        function formatDate(date) {
-            const days = Math.floor((Date.now() - date) / (24 * 60 * 60 * 1000));
-            if (days === 0) return "today";
-            if (days === 1) return "yesterday";
-            if (days < 30) return `${days} days ago`;
-            const months = Math.floor(days / 30);
-            return `${months} month${months > 1 ? 's' : ''} ago`;
-        }
-
-        // Sample MLA data
-        const mlaData = {
-            name: "Ramesh Kumar",
-            party: "ADMK",
-            score: 92,
-            issuesReported: 45,
-            issuesResolved: 42,
-            phone: "+91-9876543210",
-            email: "mla@example.com"
-        };
-
-        // Display MLA
-        function renderMLA() {
-            const mlaCard = document.getElementById("mlaCard");
-            mlaCard.innerHTML = `
-                <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
-                    <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">
-                        ${mlaData.name.charAt(0)}
-                    </div>
-                    <div>
-                        <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">${mlaData.name}</h3>
-                        <p style="color: #6b7280; margin-bottom: 1rem;">${mlaData.party} Party</p>
-
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-                            <div>
-                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${mlaData.score}%</div>
-                                <div style="font-size: 0.85rem; color: #6b7280;">Score</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${mlaData.issuesResolved}</div>
-                                <div style="font-size: 0.85rem; color: #6b7280;">Issues Resolved</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${Math.round((mlaData.issuesResolved/mlaData.issuesReported)*100)}%</div>
-                                <div style="font-size: 0.85rem; color: #6b7280;">Resolution Rate</div>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 1rem;">
-                            <a href="${mlaData.email}" class="btn-secondary btn">✉️ Email</a>
-                            <a href="tel:${mlaData.phone}" class="btn-secondary btn">📞 Call</a>
-                        </div>
-                    </div>
-                </div>
-            `;
+            renderMLA();
         }
 
         // Logout
@@ -511,9 +496,9 @@
             window.location.href = "index.html";
         });
 
-        // Render
-        renderIssues();
-        renderMLA();
+        // Load data
+        await loadAndRenderIssues();
+        await loadAndRenderMLA();
     </script>
 </body>
 </html>

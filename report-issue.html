@@ -450,16 +450,48 @@
                 return;
             }
 
-            // Submit (will be connected to Firebase later)
-            console.log('Issue submitted:', formData);
-            showMessage('✓ Issue reported successfully! Thank you for holding your MLA accountable.', 'success');
-
-            // Reset form
-            setTimeout(() => {
-                document.getElementById('reportForm').reset();
-                document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-            }, 2000);
+            // Submit to Firebase
+            await submitToFirebase(formData);
         });
+
+        async function submitToFirebase(formData) {
+            try {
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+
+                // Import Firestore functions
+                const { submitIssue } = await import('./js/firestore.js');
+                const { getCurrentUser } = await import('./js/auth.js');
+
+                // Get current user
+                const user = await getCurrentUser();
+
+                // Add userId to form data
+                const issueData = {
+                    ...formData,
+                    userId: user ? user.uid : 'anonymous'
+                };
+
+                // Submit to Firestore
+                const result = await submitIssue(issueData);
+
+                if (result.success) {
+                    showMessage('✓ Issue reported successfully! Thank you for holding your MLA accountable. Your issue ID: ' + result.id, 'success');
+
+                    // Reset form
+                    setTimeout(() => {
+                        document.getElementById('reportForm').reset();
+                        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    }, 3000);
+                } else {
+                    showMessage('Error: ' + result.message, 'error');
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                showMessage('Error submitting issue: ' + error.message, 'error');
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
 
         function showMessage(text, type) {
             const messageDiv = document.getElementById('message');

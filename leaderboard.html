@@ -414,53 +414,26 @@
     <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
 
     <script type="module">
-        // Sample MLA data (will be replaced with Firestore data)
-        const sampleMLAs = [
-            {
-                rank: 1,
-                name: "Ramesh Kumar",
-                constituency: "Tiruppur",
-                district: "coimbatore",
-                score: 92,
-                issuesReported: 45,
-                issuesResolved: 42,
-                party: "ADMK"
-            },
-            {
-                rank: 2,
-                name: "Priya Singh",
-                constituency: "Chennai East",
-                district: "chennai",
-                score: 88,
-                issuesReported: 52,
-                issuesResolved: 48,
-                party: "DMK"
-            },
-            {
-                rank: 3,
-                name: "Arjun Patel",
-                constituency: "Salem",
-                district: "salem",
-                score: 85,
-                issuesReported: 38,
-                issuesResolved: 34,
-                party: "ADMK"
-            },
-            {
-                rank: 4,
-                name: "Lakshmi Devi",
-                constituency: "Madurai",
-                district: "madurai",
-                score: 78,
-                issuesReported: 30,
-                issuesResolved: 24,
-                party: "DMK"
-            }
-        ];
+        import { getLeaderboard } from "./js/firestore.js";
 
+        let allMLAs = [];
         const leaderboardBody = document.getElementById("leaderboardBody");
         const districtFilter = document.getElementById("districtFilter");
         const sortBy = document.getElementById("sortBy");
+
+        async function loadLeaderboard() {
+            leaderboardBody.innerHTML = '<tr class="loading"><td colspan="6">Loading leaderboard...</td></tr>';
+
+            // Get MLAs from Firebase
+            allMLAs = await getLeaderboard("tamil_nadu");
+
+            if (allMLAs.length === 0) {
+                leaderboardBody.innerHTML = '<tr class="empty-state"><td colspan="6">No MLAs found. Check back soon!</td></tr>';
+                return;
+            }
+
+            renderLeaderboard(allMLAs);
+        }
 
         function renderLeaderboard(mlas) {
             leaderboardBody.innerHTML = "";
@@ -471,7 +444,11 @@
             }
 
             mlas.forEach((mla, index) => {
-                const resolutionRate = Math.round((mla.issuesResolved / mla.issuesReported) * 100);
+                const issuesReported = mla.issuesReported || 0;
+                const issuesResolved = mla.issuesResolved || 0;
+                const resolutionRate = issuesReported > 0
+                    ? Math.round((issuesResolved / issuesReported) * 100)
+                    : 0;
                 const scoreClass = mla.score >= 80 ? 'high' : mla.score >= 60 ? 'medium' : 'low';
                 const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
 
@@ -487,12 +464,12 @@
                             </div>
                         </div>
                     </td>
-                    <td><span class="score ${scoreClass}">${mla.score}%</span></td>
+                    <td><span class="score ${scoreClass}">${mla.score || 0}%</span></td>
                     <td>${resolutionRate}%</td>
-                    <td>${mla.issuesReported}</td>
+                    <td>${issuesReported}</td>
                     <td>
                         <div class="progress">
-                            <div class="progress-bar" style="width: ${mla.score}%"></div>
+                            <div class="progress-bar" style="width: ${mla.score || 0}%"></div>
                         </div>
                     </td>
                 `;
@@ -500,32 +477,36 @@
             });
 
             // Update stats
-            document.getElementById("totalIssues").textContent = mlas.reduce((sum, m) => sum + m.issuesReported, 0);
-            document.getElementById("resolvedIssues").textContent = mlas.reduce((sum, m) => sum + m.issuesResolved, 0);
-            const avgScore = Math.round(mlas.reduce((sum, m) => sum + m.score, 0) / mlas.length);
+            document.getElementById("totalIssues").textContent = mlas.reduce((sum, m) => sum + (m.issuesReported || 0), 0);
+            document.getElementById("resolvedIssues").textContent = mlas.reduce((sum, m) => sum + (m.issuesResolved || 0), 0);
+            const avgScore = mlas.length > 0
+                ? Math.round(mlas.reduce((sum, m) => sum + (m.score || 0), 0) / mlas.length)
+                : 0;
             document.getElementById("avgScore").textContent = avgScore + "%";
         }
 
-        // Initial render
-        renderLeaderboard(sampleMLAs);
+        // Load leaderboard on page load
+        loadLeaderboard();
 
         // Filter
         districtFilter.addEventListener("change", () => {
             const filtered = districtFilter.value
-                ? sampleMLAs.filter(m => m.district === districtFilter.value)
-                : sampleMLAs;
+                ? allMLAs.filter(m => m.district === districtFilter.value)
+                : allMLAs;
             renderLeaderboard(filtered);
         });
 
         // Sort
         sortBy.addEventListener("change", () => {
-            const sorted = [...sampleMLAs];
+            const sorted = [...allMLAs];
             if (sortBy.value === "issues") {
-                sorted.sort((a, b) => b.issuesReported - a.issuesReported);
+                sorted.sort((a, b) => (b.issuesReported || 0) - (a.issuesReported || 0));
             } else if (sortBy.value === "resolved") {
-                sorted.sort((a, b) => (b.issuesResolved / b.issuesReported) - (a.issuesResolved / a.issuesReported));
+                const rateA = (a.issuesReported || 0) > 0 ? (a.issuesResolved || 0) / a.issuesReported : 0;
+                const rateB = (b.issuesReported || 0) > 0 ? (b.issuesResolved || 0) / b.issuesReported : 0;
+                sorted.sort((a, b) => rateB - rateA);
             } else {
-                sorted.sort((a, b) => b.score - a.score);
+                sorted.sort((a, b) => (b.score || 0) - (a.score || 0));
             }
             renderLeaderboard(sorted);
         });

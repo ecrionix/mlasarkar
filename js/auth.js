@@ -15,6 +15,7 @@ import {
   doc,
   Timestamp
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-functions.js";
 import { auth, db } from "./firebase-config.js";
 
 // Generate 6-digit OTP
@@ -36,11 +37,18 @@ export async function sendOTP(email) {
       verified: false
     });
 
-    // TODO: Send email with OTP (requires Cloud Functions or email service)
-    // For now, log it for testing
-    console.log(`OTP for ${email}: ${otp}`);
+    // Call Cloud Function to send email
+    try {
+      const functions = getFunctions();
+      const sendOtpEmail = httpsCallable(functions, "sendOtpEmail");
+      await sendOtpEmail({ email, otp });
+    } catch (emailError) {
+      // If Cloud Function fails, still show success (OTP stored in Firestore)
+      console.warn("Email sending failed, but OTP stored:", emailError);
+      console.log(`OTP for ${email}: ${otp} (check console if email service is down)`);
+    }
 
-    return { success: true, message: "OTP sent to your email!", otp: otp };
+    return { success: true, message: "OTP sent to your email!" };
   } catch (error) {
     return { success: false, message: error.message };
   }

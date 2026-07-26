@@ -218,13 +218,52 @@
         }
 
         /* Responsive */
-        @media (max-width: 640px) {
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            nav .logo {
+                font-size: 1.2rem;
+            }
+
+            nav a {
+                margin-left: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
             .form-card {
                 padding: 1.5rem;
+                max-width: 100%;
             }
 
             .form-card h1 {
                 font-size: 1.5rem;
+            }
+
+            input, select {
+                padding: 0.875rem;
+                font-size: 16px;
+                min-height: 48px;
+            }
+
+            .btn-submit {
+                padding: 1rem;
+                font-size: 1rem;
+                min-height: 48px;
+            }
+
+            label {
+                font-size: 0.95rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
             }
         }
     </style>

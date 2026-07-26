@@ -1,0 +1,93 @@
+[
+  {
+    "id": "tn_001",
+    "name": "S. VIJAYAKUMAR",
+    "constituency": "GUMMIDIPOONDI",
+    "district": "Tiruvallur",
+    "state": "tamil_nadu",
+    "party": "TVK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000001",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  },
+  {
+    "id": "tn_002",
+    "name": "DR. RAVI.M.S",
+    "constituency": "PONNERI",
+    "district": "Tiruvallur",
+    "state": "tamil_nadu",
+    "party": "TVK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000002",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  },
+  {
+    "id": "tn_003",
+    "name": "G. HARI",
+    "constituency": "TIRUTTANI",
+    "district": "Tiruvallur",
+    "state": "tamil_nadu",
+    "party": "AIADMK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000003",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  },
+  {
+    "id": "tn_004",
+    "name": "DR. T. ARUNKUMAR",
+    "constituency": "THIRUVALLUR",
+    "district": "Tiruvallur",
+    "state": "tamil_nadu",
+    "party": "TVK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000004",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  },
+  {
+    "id": "tn_005",
+    "name": "PRAKASAM.R",
+    "constituency": "POONAMALLEE",
+    "district": "Kancheepuram",
+    "state": "tamil_nadu",
+    "party": "TVK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000005",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  },
+  {
+    "id": "tn_006",
+    "name": "R. RAMESH KUMAR",
+    "constituency": "AVADI",
+    "district": "Kancheepuram",
+    "state": "tamil_nadu",
+    "party": "TVK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000006",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  },
+  {
+    "id": "tn_007",
+    "name": "RHEVANTH CHARAN",
+    "constituency": "MADURAVOYAL",
+    "district": "Chennai",
+    "state": "tamil_nadu",
+    "party": "TVK",
+    "email": "contact@tn.gov.in",
+    "phone": "+91-9000000007",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 0
+  }
+]

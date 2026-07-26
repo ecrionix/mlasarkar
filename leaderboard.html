@@ -376,10 +376,7 @@
         <div class="filters">
             <select class="filter-select" id="districtFilter">
                 <option value="">All Districts</option>
-                <option value="coimbatore">Coimbatore</option>
-                <option value="chennai">Chennai</option>
-                <option value="salem">Salem</option>
-                <option value="madurai">Madurai</option>
+                <!-- Districts loaded dynamically from Firestore -->
             </select>
             <select class="filter-select" id="sortBy">
                 <option value="score">Sort by Score</option>
@@ -486,12 +483,21 @@
         }
 
         // Load leaderboard on page load
-        loadLeaderboard();
+        loadLeaderboard().then(() => {
+            // Populate district dropdown dynamically
+            const districts = [...new Set(allMLAs.map(m => m.district))].sort();
+            districts.forEach(district => {
+                const option = document.createElement("option");
+                option.value = district;
+                option.textContent = district;
+                districtFilter.appendChild(option);
+            });
+        });
 
-        // Filter
+        // Filter (case-insensitive)
         districtFilter.addEventListener("change", () => {
             const filtered = districtFilter.value
-                ? allMLAs.filter(m => m.district === districtFilter.value)
+                ? allMLAs.filter(m => m.district && m.district.toLowerCase() === districtFilter.value.toLowerCase())
                 : allMLAs;
             renderLeaderboard(filtered);
         });

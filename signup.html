@@ -291,35 +291,21 @@
 
             <div id="message" class="message"></div>
 
-            <!-- STEP 1: Email Verification -->
-            <div id="step1" class="form-step">
-                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Step 1: Verify Your Email</h3>
+            <form id="signupForm">
                 <div class="form-group">
                     <label for="email">Email Address *</label>
                     <input type="email" id="email" name="email" required placeholder="your@email.com">
                 </div>
-                <button type="button" class="btn-submit" id="sendOtpBtn">Send OTP</button>
-                <div class="loading" id="loadingSendOtp">Sending OTP...</div>
-            </div>
 
-            <!-- STEP 2: OTP Verification -->
-            <div id="step2" class="form-step" style="display: none;">
-                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Step 2: Enter OTP</h3>
-                <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.95rem;">Check your email for the 6-digit code</p>
                 <div class="form-group">
-                    <label for="otp">OTP Code *</label>
-                    <input type="text" id="otp" name="otp" required placeholder="000000" maxlength="6" pattern="[0-9]{6}">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" required placeholder="Minimum 6 characters" minlength="6">
                 </div>
-                <button type="button" class="btn-submit" id="verifyOtpBtn">Verify OTP</button>
-                <div class="loading" id="loadingVerifyOtp">Verifying...</div>
-                <p style="margin-top: 1rem; text-align: center; font-size: 0.9rem;">
-                    <button type="button" id="resendOtpBtn" style="background: none; border: none; color: #2563eb; cursor: pointer; text-decoration: underline;">Didn't receive? Resend OTP</button>
-                </p>
-            </div>
 
-            <!-- STEP 3: Complete Signup -->
-            <form id="signupForm" style="display: none;">
-                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Step 3: Complete Your Profile</h3>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password *</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Repeat password">
+                </div>
 
                 <div class="form-group">
                     <label for="name">Full Name *</label>
@@ -349,16 +335,6 @@
                     <input type="text" id="constituency" name="constituency" required placeholder="Your constituency">
                 </div>
 
-                <div class="form-group">
-                    <label for="password">Password *</label>
-                    <input type="password" id="password" name="password" required placeholder="Minimum 6 characters" minlength="6">
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">Confirm Password *</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Repeat password">
-                </div>
-
                 <button type="submit" class="btn-submit" id="submitBtn">Create Account</button>
                 <div class="loading" id="loading">Creating account...</div>
             </form>
@@ -370,99 +346,17 @@
     </div>
 
     <script type="module">
-        import { signUp, sendOTP, verifyOTP } from "./js/auth.js";
+        import { signUp } from "./js/auth.js";
 
+        const form = document.getElementById("signupForm");
         const messageDiv = document.getElementById("message");
-        const step1 = document.getElementById("step1");
-        const step2 = document.getElementById("step2");
-        const signupForm = document.getElementById("signupForm");
+        const submitBtn = document.getElementById("submitBtn");
+        const loading = document.getElementById("loading");
 
-        let verifiedEmail = null;
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
 
-        // STEP 1: Send OTP
-        document.getElementById("sendOtpBtn").addEventListener("click", async () => {
             const email = document.getElementById("email").value.trim();
-
-            if (!email) {
-                showMessage("Please enter your email", "error");
-                return;
-            }
-
-            if (!email.includes("@")) {
-                showMessage("Please enter a valid email", "error");
-                return;
-            }
-
-            document.getElementById("sendOtpBtn").disabled = true;
-            document.getElementById("loadingSendOtp").style.display = "block";
-
-            const result = await sendOTP(email);
-
-            if (result.success) {
-                showMessage("✓ OTP sent to your email!", "success");
-                verifiedEmail = email;
-
-                // Show OTP step
-                setTimeout(() => {
-                    step1.style.display = "none";
-                    step2.style.display = "block";
-                    messageDiv.className = "";
-                    messageDiv.innerHTML = "";
-                }, 1500);
-            } else {
-                showMessage(result.message || "Failed to send OTP", "error");
-                document.getElementById("sendOtpBtn").disabled = false;
-            }
-
-            document.getElementById("loadingSendOtp").style.display = "none";
-        });
-
-        // STEP 2: Verify OTP
-        document.getElementById("verifyOtpBtn").addEventListener("click", async () => {
-            const otp = document.getElementById("otp").value.trim();
-
-            if (!otp || otp.length !== 6) {
-                showMessage("Please enter a valid 6-digit OTP", "error");
-                return;
-            }
-
-            document.getElementById("verifyOtpBtn").disabled = true;
-            document.getElementById("loadingVerifyOtp").style.display = "block";
-
-            const result = await verifyOTP(verifiedEmail, otp);
-
-            if (result.success) {
-                showMessage("✓ Email verified successfully!", "success");
-
-                setTimeout(() => {
-                    step2.style.display = "none";
-                    signupForm.style.display = "block";
-                    messageDiv.className = "";
-                    messageDiv.innerHTML = "";
-                }, 1500);
-            } else {
-                showMessage(result.message || "Failed to verify OTP", "error");
-                document.getElementById("verifyOtpBtn").disabled = false;
-            }
-
-            document.getElementById("loadingVerifyOtp").style.display = "none";
-        });
-
-        // Resend OTP
-        document.getElementById("resendOtpBtn").addEventListener("click", async (e) => {
-            e.preventDefault();
-            const result = await sendOTP(verifiedEmail);
-            if (result.success) {
-                showMessage("✓ New OTP sent to your email!", "success");
-            } else {
-                showMessage(result.message || "Failed to resend OTP", "error");
-            }
-        });
-
-        // STEP 3: Complete Signup
-        signupForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-
             const name = document.getElementById("name").value.trim();
             const phone = document.getElementById("phone").value.trim();
             const state = document.getElementById("state").value;
@@ -470,7 +364,7 @@
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirmPassword").value;
 
-            if (!name || !phone || !state || !constituency || !password) {
+            if (!email || !name || !phone || !state || !constituency || !password) {
                 showMessage("Please fill all fields", "error");
                 return;
             }
@@ -485,20 +379,20 @@
                 return;
             }
 
-            document.getElementById("submitBtn").disabled = true;
-            document.getElementById("loading").style.display = "block";
+            submitBtn.disabled = true;
+            loading.style.display = "block";
 
-            const result = await signUp(verifiedEmail, password, name, phone, state, constituency);
+            const result = await signUp(email, password, name, phone, state, constituency);
 
             if (result.success) {
-                showMessage("✓ Account created successfully! Redirecting to login...", "success");
+                showMessage("✓ Account created! Check your email to verify your account.", "success");
                 setTimeout(() => {
                     window.location.href = "login.html";
-                }, 2000);
+                }, 3000);
             } else {
                 showMessage(result.message || "Sign up failed", "error");
-                document.getElementById("submitBtn").disabled = false;
-                document.getElementById("loading").style.display = "none";
+                submitBtn.disabled = false;
+                loading.style.display = "none";
             }
         });
 

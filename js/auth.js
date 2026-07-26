@@ -3,7 +3,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
 import {
   collection,
@@ -18,88 +19,26 @@ import {
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-functions.js";
 import { auth, db } from "./firebase-config.js";
 
-// Generate 6-digit OTP
-function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// Send OTP to email
-export async function sendOTP(email) {
+// Send verification email (Firebase built-in)
+export async function sendVerificationEmail(user) {
   try {
-    const otp = generateOTP();
-    const expiryTime = Timestamp.fromDate(new Date(Date.now() + 10 * 60 * 1000)); // 10 minutes
-
-    // Store OTP in Firestore
-    await setDoc(doc(db, "otp_codes", email), {
-      code: otp,
-      expiresAt: expiryTime,
-      createdAt: Timestamp.now(),
-      verified: false
-    });
-
-    // Call Cloud Function to send email
-    try {
-      const functions = getFunctions();
-      const sendOtpEmail = httpsCallable(functions, "sendOtpEmail");
-      await sendOtpEmail({ email, otp });
-    } catch (emailError) {
-      // If Cloud Function fails, still show success (OTP stored in Firestore)
-      console.warn("Email sending failed, but OTP stored:", emailError);
-      console.log(`OTP for ${email}: ${otp} (check console if email service is down)`);
-    }
-
-    return { success: true, message: "OTP sent to your email!" };
+    await sendEmailVerification(user);
+    return { success: true, message: "Verification email sent!" };
   } catch (error) {
     return { success: false, message: error.message };
   }
 }
 
-// Verify OTP
-export async function verifyOTP(email, otp) {
-  try {
-    const otpDoc = await getDocs(query(collection(db, "otp_codes"), where("code", "==", otp)));
-
-    if (otpDoc.empty) {
-      return { success: false, message: "Invalid OTP" };
-    }
-
-    const data = otpDoc.docs[0].data();
-
-    // Check if OTP expired
-    if (data.expiresAt.toDate() < new Date()) {
-      return { success: false, message: "OTP expired. Request a new one." };
-    }
-
-    // Check if email matches
-    if (otpDoc.docs[0].id !== email) {
-      return { success: false, message: "OTP doesn't match this email" };
-    }
-
-    // Mark OTP as verified
-    await setDoc(doc(db, "otp_codes", email), { ...data, verified: true }, { merge: true });
-
-    return { success: true, message: "Email verified successfully!" };
-  } catch (error) {
-    return { success: false, message: error.message };
-  }
-}
-
-// Sign Up Function (after OTP verification)
+// Sign Up Function
 export async function signUp(email, password, name, phone, state, constituency) {
   try {
-    // Check if email is OTP verified
-    const otpDoc = await getDocs(query(collection(db, "otp_codes"), where("code", "==", email)));
-    // Actually, we need a better way to check - let me use the email as doc ID
-
-    try {
-      const otpVerify = await getDocs(query(collection(db, "otp_codes"),
-        where("code", "==", "") // This won't work - need different approach
-      ));
-    } catch(e) {}
-
     // Create Firebase Auth user
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
+    const user = userCredential.user;
+
+    // Send verification email
+    await sendEmailVerification(user);
 
     // Add user data to Firestore
     await addDoc(collection(db, "users"), {
@@ -112,16 +51,10 @@ export async function signUp(email, password, name, phone, state, constituency) 
       createdAt: new Date(),
       issuesReported: 0,
       isPremium: false,
-      emailVerified: true
+      emailVerified: false
     });
 
-    // Clean up OTP code
-    try {
-      const otpRef = doc(db, "otp_codes", email);
-      await setDoc(otpRef, { verified: true, usedAt: Timestamp.now() }, { merge: true });
-    } catch(e) {}
-
-    return { success: true, uid: uid, message: "Sign up successful!" };
+    return { success: true, uid: uid, message: "Account created! Check your email to verify." };
   } catch (error) {
     return { success: false, message: error.message };
   }

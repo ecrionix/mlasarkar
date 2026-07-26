@@ -409,7 +409,32 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { getCurrentUser } from './js/auth.js';
+
+        // Check if user is logged in on page load
+        async function checkAuth() {
+            const user = await getCurrentUser();
+            if (!user) {
+                // User not logged in - show message and disable form
+                const messageDiv = document.getElementById('message');
+                messageDiv.className = 'message error';
+                messageDiv.innerHTML = `
+                    🔐 You must be logged in to report an issue.<br>
+                    <a href="login.html" style="color: #dc2626; font-weight: bold; text-decoration: underline;">Click here to login</a> or
+                    <a href="signup.html" style="color: #dc2626; font-weight: bold; text-decoration: underline;">create an account</a>
+                `;
+
+                // Disable form
+                document.getElementById('reportForm').style.opacity = '0.5';
+                document.getElementById('reportForm').style.pointerEvents = 'none';
+                document.getElementById('submitBtn').disabled = true;
+            }
+        }
+
+        // Check auth on page load
+        checkAuth();
+
         // Category selection
         document.querySelectorAll('.category-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -430,6 +455,16 @@
         // Form submission
         document.getElementById('reportForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Check if user is logged in
+            const user = await getCurrentUser();
+            if (!user) {
+                showMessage('❌ You must be logged in to report an issue. Redirecting to login...', 'error');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+                return;
+            }
 
             const formData = {
                 category: document.getElementById('category').value,
@@ -461,15 +496,23 @@
 
                 // Import Firestore functions
                 const { submitIssue } = await import('./js/firestore.js');
-                const { getCurrentUser } = await import('./js/auth.js');
 
                 // Get current user
                 const user = await getCurrentUser();
 
+                // Double-check user is still logged in
+                if (!user) {
+                    showMessage('❌ Session expired. Please login again.', 'error');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
+                    return;
+                }
+
                 // Add userId to form data
                 const issueData = {
                     ...formData,
-                    userId: user ? user.uid : 'anonymous'
+                    userId: user.uid
                 };
 
                 // Submit to Firestore

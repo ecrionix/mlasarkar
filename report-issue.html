@@ -416,19 +416,23 @@
         async function checkAuth() {
             const user = await getCurrentUser();
             if (!user) {
-                // User not logged in - show message and disable form
+                // User not logged in - show message and redirect
                 const messageDiv = document.getElementById('message');
                 messageDiv.className = 'message error';
                 messageDiv.innerHTML = `
-                    🔐 You must be logged in to report an issue.<br>
-                    <a href="login.html" style="color: #dc2626; font-weight: bold; text-decoration: underline;">Click here to login</a> or
-                    <a href="signup.html" style="color: #dc2626; font-weight: bold; text-decoration: underline;">create an account</a>
+                    🔐 Redirecting to login...<br>
+                    <small>You must be logged in to report an issue.</small><br>
+                    <a href="login.html" style="color: #dc2626; font-weight: bold; text-decoration: underline;">Click here if not redirected automatically</a>
                 `;
 
-                // Disable form
+                // Auto-redirect to login after 1.5 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html?redirect=report-issue';
+                }, 1500);
+
+                // Also disable form as fallback
                 document.getElementById('reportForm').style.opacity = '0.5';
                 document.getElementById('reportForm').style.pointerEvents = 'none';
-                document.getElementById('submitBtn').disabled = true;
             }
         }
 

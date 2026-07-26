@@ -412,6 +412,10 @@
 
     <script type="module">
         import { getLeaderboard } from "./js/firestore.js";
+        import { setupAuthNav } from "./js/nav-auth.js";
+
+        // Setup auth nav
+        setupAuthNav();
 
         let allMLAs = [];
         const leaderboardBody = document.getElementById("leaderboardBody");

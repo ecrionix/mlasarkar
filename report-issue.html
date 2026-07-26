@@ -411,6 +411,10 @@
 
     <script type="module">
         import { getCurrentUser } from './js/auth.js';
+        import { setupAuthNav } from './js/nav-auth.js';
+
+        // Setup auth nav
+        setupAuthNav();
 
         // Check if user is logged in on page load
         async function checkAuth() {

@@ -370,6 +370,10 @@
     <script type="module">
         import { getCurrentUser, getUserData, logOut } from "./js/auth.js";
         import { getUserIssues, getMLAByConstituency, formatDate } from "./js/firestore.js";
+        import { setupAuthNav } from "./js/nav-auth.js";
+
+        // Setup auth nav
+        setupAuthNav();
 
         // Check if user is logged in
         const user = await getCurrentUser();

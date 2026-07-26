@@ -336,8 +336,8 @@
             importBtn.innerHTML = '<span class="spinner"></span>Loading MLA data...';
 
             try {
-                // Fetch all-mlas.json
-                const response = await fetch('./data/all-mlas.json');
+                // Fetch all-mlas-complete.json (with all 38 districts)
+                const response = await fetch('./data/all-mlas-complete.json');
                 if (!response.ok) throw new Error('Failed to load MLA data');
 
                 const mlas = await response.json();

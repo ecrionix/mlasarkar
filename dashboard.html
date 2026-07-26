@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MLASarkar</title>
+    <meta name="description" content="Your MLASarkar dashboard. Track your reported issues and MLA performance.">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --success: #16a34a;
+            --warning: #ea580c;
+            --danger: #dc2626;
+            --bg: #ffffff;
+            --text: #1f2937;
+            --light-bg: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --text: #f3f4f6;
+                --light-bg: #1f2937;
+                --border: #374151;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        nav .nav-right {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .btn-logout {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 0.5rem 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 2rem;
+        }
+
+        .header h1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.95;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Card */
+        .card {
+            background-color: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .card-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .card-detail {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        /* Issues List */
+        .issues-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .issue-card {
+            background-color: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .issue-card.resolved {
+            border-left-color: var(--success);
+        }
+
+        .issue-card.rejected {
+            border-left-color: var(--danger);
+        }
+
+        .issue-card.pending {
+            border-left-color: var(--warning);
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .issue-meta {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+
+        .issue-description {
+            color: var(--text);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .issue-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-resolved {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .status-rejected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--light-bg);
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 1.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">🏛️ MLASarkar</div>
+        <div class="nav-right">
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="report-issue.html">Report Issue</a>
+            <button class="btn-logout" id="logoutBtn">Logout</button>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Welcome, <span id="userName">User</span>!</h1>
+        <p>Track your reported issues and MLA performance</p>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Stats -->
+        <div class="grid">
+            <div class="card">
+                <h3>Total Issues Reported</h3>
+                <div class="card-value" id="totalIssues">0</div>
+                <div class="card-detail">All time</div>
+            </div>
+            <div class="card">
+                <h3>Issues Resolved</h3>
+                <div class="card-value" id="resolvedIssues">0</div>
+                <div class="card-detail">Your MLA's response</div>
+            </div>
+            <div class="card">
+                <h3>Pending Issues</h3>
+                <div class="card-value" id="pendingIssues">0</div>
+                <div class="card-detail">Awaiting action</div>
+            </div>
+            <div class="card">
+                <h3>Your Constituency</h3>
+                <div class="card-value" id="constituency" style="font-size: 1.2rem;">-</div>
+                <div class="card-detail">MLA tracking area</div>
+            </div>
+        </div>
+
+        <!-- Your Issues -->
+        <div class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2>Your Reported Issues</h2>
+                <a href="report-issue.html" class="btn">+ New Issue</a>
+            </div>
+
+            <div id="issuesList" class="issues-list">
+                <div class="empty-state">
+                    <p>No issues reported yet</p>
+                    <a href="report-issue.html" class="btn" style="margin-top: 1rem;">Report Your First Issue</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Constituency MLA -->
+        <div class="section">
+            <h2>Your Constituency's MLA</h2>
+            <div id="mlaCard" class="card">
+                <div class="empty-state">
+                    <p>Loading MLA information...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getCurrentUser, getUserData, logOut } from "./js/auth.js";
+
+        // Check if user is logged in
+        const user = await getCurrentUser();
+        if (!user) {
+            window.location.href = "login.html";
+        }
+
+        // Get user data
+        const userData = await getUserData(user.uid);
+
+        // Display user name
+        if (userData) {
+            document.getElementById("userName").textContent = userData.name || "User";
+            document.getElementById("constituency").textContent = userData.constituency || "-";
+        }
+
+        // Sample issues data
+        const sampleIssues = [
+            {
+                id: 1,
+                title: "Pothole on Main Road",
+                description: "Large pothole causing traffic issues",
+                location: "Main Street, Tiruppur",
+                category: "Roads",
+                status: "APPROVED",
+                submittedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+            },
+            {
+                id: 2,
+                title: "Water shortage in residential area",
+                description: "No water supply for 3 days",
+                location: "Residential Area, Tiruppur",
+                category: "Water",
+                status: "RESOLVED",
+                submittedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
+            }
+        ];
+
+        // Display issues
+        function renderIssues() {
+            const issuesList = document.getElementById("issuesList");
+            issuesList.innerHTML = "";
+
+            if (sampleIssues.length === 0) {
+                issuesList.innerHTML = `
+                    <div class="empty-state">
+                        <p>No issues reported yet</p>
+                        <a href="report-issue.html" class="btn" style="margin-top: 1rem;">Report Your First Issue</a>
+                    </div>
+                `;
+                return;
+            }
+
+            sampleIssues.forEach(issue => {
+                const statusClass = issue.status.toLowerCase();
+                const issueCard = document.createElement("div");
+                issueCard.className = `issue-card ${statusClass}`;
+                issueCard.innerHTML = `
+                    <div class="issue-header">
+                        <div>
+                            <div class="issue-title">${issue.title}</div>
+                            <span class="issue-status status-${statusClass}">${issue.status}</span>
+                        </div>
+                    </div>
+                    <div class="issue-meta">
+                        📍 ${issue.location} • 🏷️ ${issue.category}
+                    </div>
+                    <div class="issue-description">${issue.description}</div>
+                    <div class="issue-meta">Submitted ${formatDate(issue.submittedAt)}</div>
+                `;
+                issuesList.appendChild(issueCard);
+            });
+
+            // Update stats
+            document.getElementById("totalIssues").textContent = sampleIssues.length;
+            document.getElementById("resolvedIssues").textContent = sampleIssues.filter(i => i.status === "RESOLVED").length;
+            document.getElementById("pendingIssues").textContent = sampleIssues.filter(i => i.status === "APPROVED").length;
+        }
+
+        // Format date
+        function formatDate(date) {
+            const days = Math.floor((Date.now() - date) / (24 * 60 * 60 * 1000));
+            if (days === 0) return "today";
+            if (days === 1) return "yesterday";
+            if (days < 30) return `${days} days ago`;
+            const months = Math.floor(days / 30);
+            return `${months} month${months > 1 ? 's' : ''} ago`;
+        }
+
+        // Sample MLA data
+        const mlaData = {
+            name: "Ramesh Kumar",
+            party: "ADMK",
+            score: 92,
+            issuesReported: 45,
+            issuesResolved: 42,
+            phone: "+91-9876543210",
+            email: "mla@example.com"
+        };
+
+        // Display MLA
+        function renderMLA() {
+            const mlaCard = document.getElementById("mlaCard");
+            mlaCard.innerHTML = `
+                <div style="display: grid; grid-template-columns: auto 1fr; gap: 2rem; align-items: start;">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background-color: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">
+                        ${mlaData.name.charAt(0)}
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.25rem; margin-bottom: 0.25rem;">${mlaData.name}</h3>
+                        <p style="color: #6b7280; margin-bottom: 1rem;">${mlaData.party} Party</p>
+
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${mlaData.score}%</div>
+                                <div style="font-size: 0.85rem; color: #6b7280;">Score</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${mlaData.issuesResolved}</div>
+                                <div style="font-size: 0.85rem; color: #6b7280;">Issues Resolved</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 1.5rem; font-weight: bold; color: var(--primary);">${Math.round((mlaData.issuesResolved/mlaData.issuesReported)*100)}%</div>
+                                <div style="font-size: 0.85rem; color: #6b7280;">Resolution Rate</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem;">
+                            <a href="${mlaData.email}" class="btn-secondary btn">✉️ Email</a>
+                            <a href="tel:${mlaData.phone}" class="btn-secondary btn">📞 Call</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Logout
+        document.getElementById("logoutBtn").addEventListener("click", async () => {
+            await logOut();
+            window.location.href = "index.html";
+        });
+
+        // Render
+        renderIssues();
+        renderMLA();
+    </script>
+</body>
+</html>

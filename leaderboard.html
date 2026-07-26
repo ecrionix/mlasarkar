@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLA Leaderboard - MLASarkar</title>
+    <meta name="description" content="Real-time leaderboard of Tamil Nadu MLAs ranked by accountability score and issue resolution rate.">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="MLA Leaderboard - MLASarkar">
+    <meta property="og:description" content="Track and compare MLA performance scores.">
+    <meta property="og:image" content="https://mlasarkar.in/images/og-image.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --success: #16a34a;
+            --warning: #ea580c;
+            --danger: #dc2626;
+            --bg: #ffffff;
+            --text: #1f2937;
+            --light-bg: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --text: #f3f4f6;
+                --light-bg: #1f2937;
+                --border: #374151;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        nav a:hover {
+            opacity: 0.8;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background-color: var(--light-bg);
+            padding: 0.75rem 2rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background-color: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        /* Leaderboard Table */
+        .leaderboard-wrapper {
+            overflow-x: auto;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--bg);
+        }
+
+        thead {
+            background-color: var(--light-bg);
+            border-bottom: 2px solid var(--border);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background-color: var(--light-bg);
+        }
+
+        /* Rank */
+        .rank {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary);
+            width: 50px;
+            text-align: center;
+        }
+
+        .rank.gold { color: #d97706; }
+        .rank.silver { color: #9ca3af; }
+        .rank.bronze { color: #b45309; }
+
+        /* Score */
+        .score {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .score.high { color: var(--success); }
+        .score.medium { color: var(--warning); }
+        .score.low { color: var(--danger); }
+
+        /* Progress Bar */
+        .progress {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            transition: width 0.3s;
+        }
+
+        /* MLA Info */
+        .mla-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .mla-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .mla-details h4 {
+            margin: 0;
+            font-size: 0.95rem;
+        }
+
+        .mla-details p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--primary);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+
+        /* Back to Top */
+        #backToTop {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        #backToTop:hover {
+            background-color: var(--secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            th, td {
+                padding: 0.75rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">🏛️ MLASarkar</div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="leaderboard.html">Leaderboard</a></li>
+            <li><a href="report-issue.html">Report Issue</a></li>
+            <li><a href="login.html">Login</a></li>
+        </ul>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="index.html">Home</a> > <span>Leaderboard</span>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🏆 MLA Accountability Leaderboard</h1>
+        <p>Real-time ranking of Tamil Nadu MLAs by issue resolution and accountability score</p>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>234</h3>
+                <p>Total MLAs</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="totalIssues">0</h3>
+                <p>Issues Reported</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="resolvedIssues">0</h3>
+                <p>Issues Resolved</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="avgScore">0%</h3>
+                <p>Average Score</p>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <select class="filter-select" id="districtFilter">
+                <option value="">All Districts</option>
+                <option value="coimbatore">Coimbatore</option>
+                <option value="chennai">Chennai</option>
+                <option value="salem">Salem</option>
+                <option value="madurai">Madurai</option>
+            </select>
+            <select class="filter-select" id="sortBy">
+                <option value="score">Sort by Score</option>
+                <option value="issues">Sort by Issues Reported</option>
+                <option value="resolved">Sort by Resolution Rate</option>
+            </select>
+        </div>
+
+        <!-- Leaderboard -->
+        <div class="leaderboard-wrapper">
+            <table id="leaderboardTable">
+                <thead>
+                    <tr>
+                        <th width="10%">Rank</th>
+                        <th width="30%">MLA</th>
+                        <th width="15%">Score</th>
+                        <th width="15%">Resolution Rate</th>
+                        <th width="15%">Issues</th>
+                        <th width="15%">Progress</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboardBody">
+                    <tr class="loading">
+                        <td colspan="6">Loading leaderboard...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
+
+    <script type="module">
+        // Sample MLA data (will be replaced with Firestore data)
+        const sampleMLAs = [
+            {
+                rank: 1,
+                name: "Ramesh Kumar",
+                constituency: "Tiruppur",
+                district: "coimbatore",
+                score: 92,
+                issuesReported: 45,
+                issuesResolved: 42,
+                party: "ADMK"
+            },
+            {
+                rank: 2,
+                name: "Priya Singh",
+                constituency: "Chennai East",
+                district: "chennai",
+                score: 88,
+                issuesReported: 52,
+                issuesResolved: 48,
+                party: "DMK"
+            },
+            {
+                rank: 3,
+                name: "Arjun Patel",
+                constituency: "Salem",
+                district: "salem",
+                score: 85,
+                issuesReported: 38,
+                issuesResolved: 34,
+                party: "ADMK"
+            },
+            {
+                rank: 4,
+                name: "Lakshmi Devi",
+                constituency: "Madurai",
+                district: "madurai",
+                score: 78,
+                issuesReported: 30,
+                issuesResolved: 24,
+                party: "DMK"
+            }
+        ];
+
+        const leaderboardBody = document.getElementById("leaderboardBody");
+        const districtFilter = document.getElementById("districtFilter");
+        const sortBy = document.getElementById("sortBy");
+
+        function renderLeaderboard(mlas) {
+            leaderboardBody.innerHTML = "";
+
+            if (mlas.length === 0) {
+                leaderboardBody.innerHTML = '<tr class="empty-state"><td colspan="6">No MLAs found</td></tr>';
+                return;
+            }
+
+            mlas.forEach((mla, index) => {
+                const resolutionRate = Math.round((mla.issuesResolved / mla.issuesReported) * 100);
+                const scoreClass = mla.score >= 80 ? 'high' : mla.score >= 60 ? 'medium' : 'low';
+                const rankClass = index === 0 ? 'gold' : index === 1 ? 'silver' : index === 2 ? 'bronze' : '';
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td><div class="rank ${rankClass}">${mla.rank}${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : ''}</div></td>
+                    <td>
+                        <div class="mla-info">
+                            <div class="mla-avatar">${mla.name.charAt(0)}</div>
+                            <div class="mla-details">
+                                <h4>${mla.name}</h4>
+                                <p>${mla.constituency} · ${mla.party}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="score ${scoreClass}">${mla.score}%</span></td>
+                    <td>${resolutionRate}%</td>
+                    <td>${mla.issuesReported}</td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar" style="width: ${mla.score}%"></div>
+                        </div>
+                    </td>
+                `;
+                leaderboardBody.appendChild(row);
+            });
+
+            // Update stats
+            document.getElementById("totalIssues").textContent = mlas.reduce((sum, m) => sum + m.issuesReported, 0);
+            document.getElementById("resolvedIssues").textContent = mlas.reduce((sum, m) => sum + m.issuesResolved, 0);
+            const avgScore = Math.round(mlas.reduce((sum, m) => sum + m.score, 0) / mlas.length);
+            document.getElementById("avgScore").textContent = avgScore + "%";
+        }
+
+        // Initial render
+        renderLeaderboard(sampleMLAs);
+
+        // Filter
+        districtFilter.addEventListener("change", () => {
+            const filtered = districtFilter.value
+                ? sampleMLAs.filter(m => m.district === districtFilter.value)
+                : sampleMLAs;
+            renderLeaderboard(filtered);
+        });
+
+        // Sort
+        sortBy.addEventListener("change", () => {
+            const sorted = [...sampleMLAs];
+            if (sortBy.value === "issues") {
+                sorted.sort((a, b) => b.issuesReported - a.issuesReported);
+            } else if (sortBy.value === "resolved") {
+                sorted.sort((a, b) => (b.issuesResolved / b.issuesReported) - (a.issuesResolved / a.issuesReported));
+            } else {
+                sorted.sort((a, b) => b.score - a.score);
+            }
+            renderLeaderboard(sorted);
+        });
+
+        // Back to Top
+        window.addEventListener('scroll', () => {
+            document.getElementById('backToTop').style.display = window.pageYOffset > 300 ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

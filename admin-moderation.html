@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Issue Moderation - MLASarkar</title>
+    <meta name="description" content="Admin panel for moderating citizen-reported issues.">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e40af;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #ea580c;
+            --bg: #ffffff;
+            --text: #1f2937;
+            --light-bg: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111827;
+                --text: #f3f4f6;
+                --light-bg: #1f2937;
+                --border: #374151;
+            }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        nav .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 2rem;
+        }
+
+        /* Breadcrumb */
+        .breadcrumb {
+            background-color: var(--light-bg);
+            padding: 0.75rem 2rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .breadcrumb a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--light-bg);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-card h3 {
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Issues List */
+        .issues-container {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .issue-card {
+            background-color: var(--light-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .issue-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .issue-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .issue-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-item {
+            font-size: 0.9rem;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .issue-description {
+            background-color: var(--bg);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Actions */
+        .issue-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-approve {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            opacity: 0.9;
+        }
+
+        .btn-reject {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .btn-reject:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #6b7280;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Message */
+        .message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            display: block;
+        }
+
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav {
+                padding: 1rem;
+            }
+
+            .issue-header {
+                flex-direction: column;
+            }
+
+            .issue-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">🏛️ Track MLA</div>
+        <div>
+            <a href="index.html">Home</a>
+            <a href="leaderboard.html">Leaderboard</a>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="index.html">Home</a> > <span>Admin - Moderation</span>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🛡️ Issue Moderation</h1>
+        <p>Review and approve citizen-reported issues</p>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="pendingCount">0</h3>
+                <p>Pending Review</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="approvedCount">0</h3>
+                <p>Approved</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="rejectedCount">0</h3>
+                <p>Rejected</p>
+            </div>
+        </div>
+
+        <!-- Message -->
+        <div id="message" class="message"></div>
+
+        <!-- Issues List -->
+        <div id="issuesList" class="issues-container">
+            <div class="empty-state">
+                <p>Loading issues...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getPendingIssues, approveIssue, rejectIssue, getAllIssues } from "./js/firestore.js";
+
+        let pendingIssues = [];
+
+        async function loadIssues() {
+            const issuesList = document.getElementById("issuesList");
+            issuesList.innerHTML = '<div class="empty-state"><p>Loading issues...</p></div>';
+
+            // Get pending issues
+            pendingIssues = await getPendingIssues();
+
+            if (pendingIssues.length === 0) {
+                issuesList.innerHTML = '<div class="empty-state"><p>✓ All issues reviewed! No pending issues.</p></div>';
+                updateStats(0, 0, 0);
+                return;
+            }
+
+            issuesList.innerHTML = "";
+            pendingIssues.forEach((issue, index) => {
+                const card = document.createElement("div");
+                card.className = "issue-card";
+                card.innerHTML = `
+                    <div class="issue-header">
+                        <div>
+                            <div class="issue-title">${issue.title}</div>
+                            <span class="issue-status">PENDING</span>
+                        </div>
+                    </div>
+
+                    <div class="issue-details">
+                        <div class="detail-item">
+                            <div class="detail-label">📍 Location</div>
+                            <div class="detail-value">${issue.location || "-"}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🏷️ Category</div>
+                            <div class="detail-value">${issue.category || "-"}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">👤 Reporter</div>
+                            <div class="detail-value">${issue.name || "Anonymous"}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">🏛️ MLA Constituency</div>
+                            <div class="detail-value">${issue.constituency || "-"}</div>
+                        </div>
+                    </div>
+
+                    <div class="issue-description">
+                        <strong>Description:</strong><br>
+                        ${issue.description || "No description"}
+                    </div>
+
+                    <div class="issue-actions">
+                        <button class="btn btn-approve" onclick="approveIssueHandler('${issue.id}', ${index})">
+                            ✓ Approve
+                        </button>
+                        <button class="btn btn-reject" onclick="rejectIssueHandler('${issue.id}', ${index})">
+                            ✕ Reject
+                        </button>
+                    </div>
+                `;
+                issuesList.appendChild(card);
+            });
+
+            updateStats(pendingIssues.length, 0, 0);
+        }
+
+        window.approveIssueHandler = async (issueId, index) => {
+            const issue = pendingIssues[index];
+            const result = await approveIssue(issueId, issue);
+
+            if (result.success) {
+                showMessage("✓ Issue approved successfully!", "success");
+                setTimeout(() => loadIssues(), 1500);
+            } else {
+                showMessage("Error: " + result.message, "error");
+            }
+        };
+
+        window.rejectIssueHandler = async (issueId, index) => {
+            const reason = prompt("Reason for rejection:");
+            if (!reason) return;
+
+            const issue = pendingIssues[index];
+            const result = await rejectIssue(issueId, issue, reason);
+
+            if (result.success) {
+                showMessage("✓ Issue rejected", "success");
+                setTimeout(() => loadIssues(), 1500);
+            } else {
+                showMessage("Error: " + result.message, "error");
+            }
+        };
+
+        function updateStats(pending, approved, rejected) {
+            document.getElementById("pendingCount").textContent = pending;
+            document.getElementById("approvedCount").textContent = approved;
+            document.getElementById("rejectedCount").textContent = rejected;
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById("message");
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+        }
+
+        // Load issues on page load
+        loadIssues();
+    </script>
+</body>
+</html>

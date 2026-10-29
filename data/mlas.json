@@ -1,5 +1,18 @@
 [
   {
+    "id": "tn_neshiyaa",
+    "name": "NESHIYAA",
+    "constituency": "NAMAKKAL NORTH",
+    "district": "Namakkal",
+    "state": "tamil_nadu",
+    "party": "Independent",
+    "email": "mla.neshiyaa@tn.gov.in",
+    "phone": "+91-9000000235",
+    "issuesReported": 0,
+    "issuesResolved": 0,
+    "score": 100
+  },
+  {
     "id": "tn_001",
     "name": "S. VIJAYAKUMAR",
     "constituency": "GUMMIDIPOONDI",

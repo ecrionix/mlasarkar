@@ -289,8 +289,196 @@
             background-color: var(--secondary);
         }
 
+        /* Announcement Bar */
+        .announcement-banner {
+            background: linear-gradient(90deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+            padding: 0.75rem 1.5rem;
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .announcement-banner .tag {
+            background-color: #f59e0b;
+            color: #111827;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.55rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* MLA Spotlight Card */
+        .spotlight-section {
+            max-width: 1100px;
+            margin: -2.5rem auto 2.5rem auto;
+            padding: 0 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .spotlight-card {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        .spotlight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .spotlight-badge {
+            background: #dbeafe;
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .spotlight-state {
+            color: #6b7280;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .spotlight-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .spotlight-profile {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .spotlight-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+            flex-shrink: 0;
+        }
+
+        .spotlight-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+            color: var(--text);
+        }
+
+        .spotlight-info .constituency-title {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .spotlight-info .desc {
+            color: var(--text);
+            opacity: 0.85;
+            font-size: 0.9rem;
+            max-width: 520px;
+            line-height: 1.5;
+        }
+
+        .spotlight-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 220px;
+        }
+
+        .spotlight-stat {
+            background: var(--light-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.6rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .spotlight-stat strong {
+            color: var(--success);
+            font-size: 1.1rem;
+        }
+
+        .btn-spotlight-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .btn-spotlight-primary:hover {
+            background-color: var(--secondary);
+            transform: translateY(-1px);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
+            .announcement-banner {
+                flex-direction: column;
+                gap: 0.4rem;
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .spotlight-section {
+                margin-top: 1rem;
+            }
+
+            .spotlight-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .spotlight-profile {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .spotlight-actions {
+                width: 100%;
+            }
+
             nav ul {
                 display: none;
             }
@@ -314,6 +502,12 @@
     </style>
 </head>
 <body>
+    <!-- Live Announcement Banner -->
+    <div class="announcement-banner">
+        <span class="tag">📢 Official Update</span>
+        <span><strong>Neshiyaa</strong> has been appointed as the New MLA of <strong>Namakkal North</strong> constituency!</span>
+    </div>
+
     <!-- Breadcrumb -->
     <div class="breadcrumb">
         <a href="/">Home</a>
@@ -337,6 +531,40 @@
         <div class="cta-buttons">
             <button class="btn btn-primary" onclick="window.location.href='signup.html'">Sign Up Free</button>
             <button class="btn btn-secondary" onclick="window.location.href='leaderboard.html'">View Leaderboard</button>
+        </div>
+    </section>
+
+    <!-- New MLA Spotlight Section -->
+    <section class="spotlight-section">
+        <div class="spotlight-card">
+            <div class="spotlight-header">
+                <div class="spotlight-badge">
+                    <span>🏛️</span>
+                    <span>NEW MLA APPOINTMENT</span>
+                </div>
+                <div class="spotlight-state">Tamil Nadu Legislative Assembly · Namakkal District</div>
+            </div>
+            <div class="spotlight-content">
+                <div class="spotlight-profile">
+                    <div class="spotlight-avatar">N</div>
+                    <div class="spotlight-info">
+                        <h3>Neshiyaa</h3>
+                        <div class="constituency-title">MLA — Namakkal North Constituency</div>
+                        <p class="desc">
+                            Neshiyaa is appointed as the new MLA representing Namakkal North. Citizens of Namakkal North can report local grievances, track ongoing developmental initiatives, and hold their representative accountable on our live leaderboard.
+                        </p>
+                    </div>
+                </div>
+                <div class="spotlight-actions">
+                    <div class="spotlight-stat">
+                        <span>Accountability Status</span>
+                        <strong>Live on Board</strong>
+                    </div>
+                    <a href="report-issue.html?constituency=Namakkal%20North" class="btn-spotlight-primary">
+                        📝 Report Issue to MLA
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
